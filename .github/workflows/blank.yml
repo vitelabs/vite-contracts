@@ -20,4 +20,4 @@ jobs:
     - name: Check v1
       run: echo "hello world 1"
     - name: Check v2
-      run: echo "hello world 2"
+      run: echo "hello world 2" && exit 1
