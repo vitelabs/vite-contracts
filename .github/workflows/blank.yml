@@ -3,6 +3,7 @@ name: Contract-Verify
 on:
   pull_request:
     branches: [ master ]
+    types: [assigned, opened, synchronize, reopened]
 
 jobs:
   build:
@@ -17,7 +18,11 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Check v1
-      run: echo "hello world 1"
-    - name: Check v2
-      run: echo "hello world 2" && exit 1
+    - name: Install and build
+      run: |
+        npm install
+        npm run build
+    - name: Run status checks
+      run: node status-checks
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
