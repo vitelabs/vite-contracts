@@ -14,6 +14,8 @@ jobs:
         node-version: [ 14 ]
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
@@ -21,6 +23,12 @@ jobs:
     - name: Install and build
       run: |
         npm install
+    - id: files
+      uses: jitterbit/get-changed-files@v1
+    - run: |
+        for changed_file in ${{ steps.files.outputs.all }}; do
+          echo "Do something with this ${changed_file}."
+        done
     - name: Run status checks
       run: node status-checks
       env:

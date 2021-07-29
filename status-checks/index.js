@@ -43,8 +43,10 @@ async function setStatus(context, state, description) {
 
       try {
         const response = await callback();
-        await setStatus(name, 'success', response);
+        const result = await setStatus(name, 'success', response);
+	console.log(name, result);
       } catch (err) {
+	console.log(name, err);
         const message = err ? err.message : 'Something went wrong';
         await setStatus(name, 'failure', message);
       }
