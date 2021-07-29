@@ -3,7 +3,7 @@ name: Contract-Verify
 on:
   pull_request:
     branches: [ master ]
-    types: [assigned, opened, synchronize, reopened]
+    types: [opened, reopened]
 
 jobs:
   build:
