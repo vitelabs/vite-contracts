@@ -28,7 +28,10 @@ jobs:
       with:
         format: 'json'
     - run: |
-        echo "${{ steps.files.outputs }}"
+        readarray -t removed_files <<<"$(jq -r '.[]' <<<'${{ steps.files.outputs.all }}')"
+        for removed_file in ${removed_files[@]}; do
+          echo "Do something with this ${removed_file}."
+        done
     - name: Run status checks
       run: node status-checks
       env:
