@@ -28,7 +28,7 @@ jobs:
       with:
         format: 'json'
     - run: |
-        echo "${{ changed_file }}"
+        echo "${{ steps.files.outputs }}"
     - name: Run status checks
       run: node status-checks
       env:
