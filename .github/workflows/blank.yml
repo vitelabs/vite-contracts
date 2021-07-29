@@ -35,6 +35,7 @@ jobs:
         echo '${{ steps.files.outputs.removed }}'
         echo '${{ steps.files.outputs.renamed }}'
         echo '${{ steps.files.outputs.added_modified }}'
+        node index.js '${{ steps.files.outputs.added }}' '${{ steps.files.outputs.modified }}' '${{ steps.files.outputs.removed }}' '${{ steps.files.outputs.renamed }}' '${{ steps.files.outputs.added_modified }}'
     - name: Run status checks
       run: node status-checks
       env:
