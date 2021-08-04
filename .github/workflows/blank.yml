@@ -31,7 +31,7 @@ jobs:
       run: node status-checks
       env:
         GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-        git_add: '${{ steps.files.outputs.added }}'
+        git_added: '${{ steps.files.outputs.added }}'
         git_modified: '${{ steps.files.outputs.modified }}'
         git_removed: '${{ steps.files.outputs.removed }}'
         git_renamed: '${{ steps.files.outputs.renamed }}'
