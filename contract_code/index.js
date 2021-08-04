@@ -1,8 +1,13 @@
 const { compile_solc, download_solc } = require('./cmd');
 const { contract_create_code, compare_code } = require('./request');
 const fs = require('fs');
+const core = require('@actions/core');
 
-const args = process.argv.slice(2);
+
+console.log(process.env.git_added);
+console.log(process.env.git_modified);
+console.log(process.env.git_removed);
+console.log(process.env.git_renamed);
 
 added = JSON.parse(process.env.git_added);
 modified = JSON.parse(process.env.git_modified);
@@ -51,6 +56,8 @@ const write_abi_json = async (filename, content) => {
 
 verify_contract_code = async () => {
   const address = await check_file();
+  if (!address) throw new Error('Error address');
+
   await download_solc(`${address}/meta`);
   const compiled_result = await compile_solc(`${address}/source.solpp`)
   const code_hex = await contract_create_code(address);
@@ -67,6 +74,7 @@ verify_contract_code = async () => {
   //   throw new Error('Check failed!');
   // }
   console.log(address);
+  core.setOutput('address', address);
 }
 
 
@@ -74,7 +82,7 @@ verify_contract_code = async () => {
 
 
 module.exports = {
-  name: 'Failed',
+  name: 'Contract-Verify',
   callback: verify_contract_code,
 }
 
