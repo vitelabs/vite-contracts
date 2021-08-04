@@ -6,7 +6,7 @@ on:
     types: [opened, reopened]
 
 jobs:
-  build:
+  contract-verify:
     runs-on: ubuntu-18.04
 
     strategy:

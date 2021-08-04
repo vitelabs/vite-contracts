@@ -84,9 +84,8 @@ verify_contract_code = async () => {
 
 
 
-
-module.exports = {
-  name: 'Contract-Verify',
-  callback: verify_contract_code,
+const main = async () => {
+  await verify_contract_code();
 }
 
+main();
