@@ -1,0 +1,132 @@
+pragma soliditypp ^0.4.3;
+
+contract ViteBet{
+    address owner;
+    uint64[] public normalLotteryProbs;  
+    uint8[] public selectedIndexes;
+    event spin(address indexed addr,uint256 totalReward,uint8[] selectedIndexes,uint8 index);
+
+    constructor() public {
+        owner = msg.sender;
+        normalLotteryProbs = new uint64[](16);
+        selectedIndexes = new uint8[](16);
+        normalLotteryProbs[0] = 16665; 
+        normalLotteryProbs[1] = 70000;
+        normalLotteryProbs[2] = 1240000; 
+        normalLotteryProbs[3] = 740000; 
+        normalLotteryProbs[4] = 740000; 
+        normalLotteryProbs[5] = 460000; 
+        normalLotteryProbs[6] = 350000; 
+        normalLotteryProbs[7] = 206666; 
+        normalLotteryProbs[8] = 140000; 
+        normalLotteryProbs[9] = 614710; 
+        normalLotteryProbs[10] = 614710; 
+        normalLotteryProbs[11] = 998904; 
+        normalLotteryProbs[12] = 922065; 
+        normalLotteryProbs[13] = 768387; 
+        normalLotteryProbs[14] = 691549; 
+        normalLotteryProbs[15] = 400000; 
+    }
+
+    onMessage () payable {
+    }
+
+    onMessage DrawMoney(uint256 amount) {
+        require(owner == msg.sender);
+        require(amount <= balance(msg.tokenid));
+        msg.sender.transfer(msg.tokenid, amount);
+    }
+
+    onMessage BetAndRoll(uint256 pingguo,uint256 chengzi,uint256 mangguo,uint256 lingdang,uint256 xigua,uint256 xing,uint256 qiqi,uint256 bar) payable {      
+        uint256 totalbet = pingguo + chengzi + mangguo + lingdang + xigua + xing + qiqi + bar;
+        address betAddr = msg.sender;
+       require(totalbet >= 1000000000000000000 && totalbet <= 99000000000000000000 * 8);  //totalbet >= 1 1000000000000000000
+        require(totalbet == msg.amount);  
+          require(pingguo >= 0);
+          require(chengzi >= 0);
+          require(mangguo >= 0);
+          require(lingdang >= 0);     
+          require(xigua >= 0 );
+          require(xing >= 0 );
+          require(qiqi >= 0 );
+          require(bar >= 0 );
+ 
+
+        for(uint8 www = 0;www< 16;++www) {selectedIndexes[www] = 0;}   
+
+        uint64 randomNumber = nextrandom();
+        uint64 rollTarget = randomNumber % 10000000;
+
+         uint8 index = 0 ;  
+         uint8 multiSpinNum = 1; 
+         if(rollTarget <= 8973656) {index = 1;multiSpinNum = 1 ; } 
+         else if(rollTarget <= 9083656) {index = 16; multiSpinNum = 0;selectedIndexes[2] = 4;} 
+         else if(rollTarget <= 9127656) {index = 17; multiSpinNum = 0;selectedIndexes[3] = 1;selectedIndexes[4] = 1;selectedIndexes[5] = 1;} 
+         else if(rollTarget <= 9133211) {index = 18; multiSpinNum = 0;selectedIndexes[6] = 1;selectedIndexes[7] = 1;selectedIndexes[8] = 1;} 
+         else if(rollTarget <= 9253749) {index = 19; multiSpinNum = 2;}  
+         else if(rollTarget <= 9285892) {index = 20; multiSpinNum = 3;}  
+         else if(rollTarget <= 9299954) {index = 21; multiSpinNum = 4;}  
+         else if(rollTarget <= 9999999) {index = 23; multiSpinNum = 0;}  
+        if (multiSpinNum > 0) {multiSpin(multiSpinNum);}
+            
+            uint256 totalReward = 0 ;
+
+        if (selectedIndexes[0]  == 1 ) {totalReward = totalReward + 120 * bar ;} 
+        if (selectedIndexes[1]  == 1 ){totalReward = totalReward + 50 * bar ;} 
+        if (selectedIndexes[2]  >= 1 ){totalReward = totalReward + 5 * pingguo * selectedIndexes[2] ;} 
+        if (selectedIndexes[3]  == 1 ){totalReward = totalReward + 10 * chengzi ;} 
+        if (selectedIndexes[4]  == 1 ){totalReward = totalReward + 10 * mangguo ;} 
+        if (selectedIndexes[5]  == 1 ){totalReward = totalReward + 15 * lingdang ;} 
+        if (selectedIndexes[6]  ==1 ){totalReward = totalReward + 20 * xigua; } 
+        if (selectedIndexes[7]  == 1 ){totalReward = totalReward + 30 * xing ;} 
+        if (selectedIndexes[8]  == 1 ){totalReward = totalReward + 40 * qiqi ;} 
+        if (selectedIndexes[9]  == 1 ){totalReward = totalReward + 2 * chengzi ;} 
+        if (selectedIndexes[10]  == 1 ){totalReward = totalReward + 2 * mangguo ;} 
+        if (selectedIndexes[11]  == 1 ){totalReward = totalReward + 2 * qiqi; } 
+        if (selectedIndexes[12]  == 1 ){totalReward = totalReward + 2 * xing ;} 
+        if (selectedIndexes[13]  == 1 ){totalReward = totalReward + 2 * xigua ;} 
+        if (selectedIndexes[14]  == 1 ){totalReward = totalReward + 2 * lingdang ;} 
+        if (selectedIndexes[15]  == 1 ){totalReward = totalReward + 2 * pingguo ;} 
+        
+       betAddr.transfer(msg.tokenid, totalReward);
+        tokenId vgc = "tti_3ccb0fe9845a720b65039e9e";
+       betAddr.transfer(vgc, msg.amount * 5 / 100);
+       emit spin(betAddr,totalReward, selectedIndexes,index);
+    }  
+
+    function multiSpin(uint8 number) public
+    {        
+        for(uint8 round = 0;round < number; ++round)
+        {            
+
+        
+        uint64 totalProb = 0;
+        for(uint8 index = 0;index < 16;++index)    
+        {
+            if(selectedIndexes[index] == 0)
+                totalProb += normalLotteryProbs[index];
+        }   
+
+            uint64 randomNumber = nextrandom();
+            uint64 prob = randomNumber % totalProb;
+
+        uint64 sum = 0;
+
+        for(uint8 texx = 0; texx < 16; ++texx)   
+        {
+            if(selectedIndexes[texx] == 0)
+            {
+                sum += normalLotteryProbs[texx];
+                if(sum >= prob)
+                {
+                    selectedIndexes[texx] = 1;
+                    break;
+                }
+            }
+        }   
+            
+
+        }
+    }      
+
+    }
