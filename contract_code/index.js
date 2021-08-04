@@ -1,6 +1,7 @@
 const { compile_solc, download_solc } = require('./cmd');
 const { contract_create_code, compare_code } = require('./request');
 const fs = require('fs');
+const core = require('@actions/core');
 
 
 console.log(process.env.git_added);
@@ -55,6 +56,8 @@ const write_abi_json = async (filename, content) => {
 
 verify_contract_code = async () => {
   const address = await check_file();
+  if (!address) throw new Error('Error address');
+
   await download_solc(`${address}/meta`);
   const compiled_result = await compile_solc(`${address}/source.solpp`)
   const code_hex = await contract_create_code(address);
@@ -71,6 +74,7 @@ verify_contract_code = async () => {
   //   throw new Error('Check failed!');
   // }
   console.log(address);
+  core.setOutput('address', address);
 }
 
 
