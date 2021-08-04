@@ -78,6 +78,7 @@ verify_contract_code = async () => {
   //   throw new Error('Check failed!');
   // }
   console.log(address);
+  return 'Check passed!'
 }
 
 
