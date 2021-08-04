@@ -1,4 +1,5 @@
 pragma soliditypp ^0.4.3;
+
 contract ViteBet{
     address owner;
     uint64[] public normalLotteryProbs;  
