@@ -27,16 +27,11 @@ jobs:
       uses: jitterbit/get-changed-files@v1
       with:
         format: 'json'
-    - run: |
-        echo '${{ steps.files.outputs }}'
-        echo '${{ steps.files.outputs.all }}'
-        echo '${{ steps.files.outputs.added }}'
-        echo '${{ steps.files.outputs.modified }}'
-        echo '${{ steps.files.outputs.removed }}'
-        echo '${{ steps.files.outputs.renamed }}'
-        echo '${{ steps.files.outputs.added_modified }}'
-        node index.js '${{ steps.files.outputs.added }}' '${{ steps.files.outputs.modified }}' '${{ steps.files.outputs.removed }}' '${{ steps.files.outputs.renamed }}' '${{ steps.files.outputs.added_modified }}'
     - name: Run status checks
       run: node status-checks
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        git_add: ${{ steps.files.outputs.added }}
+        git_modified: ${{ steps.files.outputs.modified }}
+        git_removed: ${{ steps.files.outputs.removed }}
+        git_renamed: ${{ steps.files.outputs.renamed }}
