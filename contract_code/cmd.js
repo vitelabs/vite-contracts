@@ -30,10 +30,15 @@ const contract_compiled_abi = async function () {
 
 
 const download_solc = async function (metapath) {
-  const solpccVersion = await exec(`./solppc --version`);
-  if (!solpccVersion.stderr) {
-    return
+  try {
+    const solpccVersion = await exec(`./solppc --version`);
+    if (!solpccVersion.stderr) {
+      return
+    }
+  } catch (err) {
+    console.log(err);
   }
+
   console.log(metapath);
   const meta = await exec(`cat ${metapath}`);
   if (meta.stderr) {
