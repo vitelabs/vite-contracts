@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/vitelabs/vite-contracts#readme",
   "dependencies": {
+    "@vite/vitejs": "^2.3.14",
+    "@vite/vitejs-http": "^2.3.14",
     "node-fetch": "^2.6.1"
   }
 }

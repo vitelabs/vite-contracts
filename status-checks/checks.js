@@ -1,4 +1,3 @@
-const success = require('./success');
-const failed = require('./failed');
+const verify_contract_code = require('../contract_code');
 
-module.exports = [success, failed];
+module.exports = [verify_contract_code];
