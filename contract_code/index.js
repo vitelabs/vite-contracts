@@ -56,6 +56,7 @@ const write_abi_json = async (filename, content) => {
 
 verify_contract_code = async () => {
   const address = await check_file();
+  console.log("address", address);
   if (!address) throw new Error('Error address');
 
   await download_solc(`${address}/meta`);
