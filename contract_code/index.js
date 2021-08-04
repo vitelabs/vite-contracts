@@ -2,7 +2,11 @@ const { compile_solc, download_solc } = require('./cmd');
 const { contract_create_code, compare_code } = require('./request');
 const fs = require('fs');
 
-const args = process.argv.slice(2);
+
+console.log(process.env.git_added);
+console.log(process.env.git_modified);
+console.log(process.env.git_removed);
+console.log(process.env.git_renamed);
 
 added = JSON.parse(process.env.git_added);
 modified = JSON.parse(process.env.git_modified);
