@@ -47,10 +47,9 @@ check_file = async () => {
   return dirname;
 }
 
-const write_abi_json = async (filename, content) => {
-  fs.writeFile(filename, content, function (error) {
-    console.log('write result, ', error);
-  });
+const compare_abi = async (filename, content) => {
+  const c1 = fs.readFileSync(filename, 'utf-8');
+  return (JSON.stringify(JSON.parse(c1)) === JSON.stringify(JSON.parse(content)));
 }
 
 
@@ -67,7 +66,12 @@ verify_contract_code = async () => {
     console.log(`code compare filed`);
     throw new Error('Check failed!')
   }
-  await write_abi_json(`${address}/abi.json`, compiled_result.abi);
+
+  const result_abi = await compare_abi(`${address}/abi.json`, compiled_result.abi)
+  if (!result_abi) {
+    console.log(`abi compare filed`);
+    throw new Error('Check failed!');
+  }
   // if (!compiled_result.code || compiled_result.code != code_hex) {
   //   console.log('verification failed');
   //   console.log(compiled_result.code);
