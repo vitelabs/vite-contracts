@@ -27,8 +27,7 @@ jobs:
       uses: jitterbit/get-changed-files@v1
       with:
         format: 'json'
-    - id: checks
-      name: Run status checks
+    - name: Run status checks
       run: node status-checks
       env:
         GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
@@ -36,9 +35,3 @@ jobs:
         git_modified: '${{ steps.files.outputs.modified }}'
         git_removed: '${{ steps.files.outputs.removed }}'
         git_renamed: '${{ steps.files.outputs.renamed }}'
-    - name: Commit changes
-      uses: EndBug/add-and-commit@v7
-      with:
-        message: 'update ${{ steps.checks.outputs.address }} abi '
-        add: '${{ steps.checks.outputs.address }}/abi.json'
-

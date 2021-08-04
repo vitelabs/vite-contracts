@@ -1,7 +1,6 @@
 const { compile_solc, download_solc } = require('./cmd');
 const { contract_create_code, compare_code } = require('./request');
 const fs = require('fs');
-const core = require('@actions/core');
 
 
 console.log(process.env.git_added);
@@ -79,7 +78,7 @@ verify_contract_code = async () => {
   //   throw new Error('Check failed!');
   // }
   console.log(address);
-  core.setOutput('address', address);
+  return 'Check passed!'
 }
 
 
