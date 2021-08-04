@@ -82,7 +82,7 @@ verify_contract_code = async () => {
 
 
 module.exports = {
-  name: 'Failed',
+  name: 'Contract-Verify',
   callback: verify_contract_code,
 }
 
