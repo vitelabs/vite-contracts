@@ -1,4 +1,4 @@
-name: Contract-Verify
+name: Contract-Verify-Code-Abi
 
 on:
   pull_request:
