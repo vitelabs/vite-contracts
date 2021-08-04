@@ -28,7 +28,7 @@ jobs:
       with:
         format: 'json'
     - id: checks
-    - name: Run status checks
+      name: Run status checks
       run: node status-checks
       env:
         GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
