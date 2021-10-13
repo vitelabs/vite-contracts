@@ -1,0 +1,146 @@
+pragma soliditypp ^0.4.5;
+
+contract ImmutableNotes {
+  address owner;
+  uint256 totalNotes = 0;
+
+  mapping(bytes32 => Note) notes;
+  mapping(address => Timeline) timelines;
+
+  message noteByTimelineData(bytes32, uint256, string, uint256[], bytes32);
+  message noteByHashData(address, uint256, string, uint256[], bytes32);
+  message timelineStats(string, uint256, uint256[]);
+  message ownerData(address);
+  message totalNotesData(uint256);
+  event NewNote(bytes32, uint256, string, address, bytes32);
+
+  struct Note {
+    bytes32 hash;
+    uint256 timestamp;
+    string text;
+    address author;
+    mapping(tokenId => uint256) tips;
+    bytes32 relatedNoteHash;
+  }
+
+  struct Timeline {
+    uint256 totalNotes;
+    string bio;
+    mapping(uint256 => bytes32) noteHashHistory;
+    mapping(tokenId => uint256) tips;
+  }
+
+  constructor() public {
+    owner = msg.sender;
+  }
+
+  onMessage updateBio(string calldata bio) {
+    timelines[msg.sender].bio = bio;
+  }
+
+  onMessage recordNote(string calldata noteText, bytes32 relatedNoteHash) {
+    totalNotes++;
+    bytes32 key = fromhash();
+    uint256 timestamp = block.timestamp;
+    if (relatedNoteHash != 0) {
+      require(notes[relatedNoteHash].timestamp != 0); // Related note does not exist if timestamp == 0
+    }
+    notes[key] = Note({
+      hash: key,
+      timestamp: timestamp,
+      text: noteText,
+      author: msg.sender,
+      relatedNoteHash: relatedNoteHash
+    });
+    Timeline storage timeline = timelines[msg.sender];
+    timeline.noteHashHistory[timeline.totalNotes++] = key;
+    emit NewNote(key, timestamp, noteText, msg.sender, relatedNoteHash);
+  }
+
+  onMessage updateRelatedNoteHash(bytes32 noteHash, bytes32 relatedNoteHash) {
+    Note storage note = notes[noteHash];
+    require(msg.sender == note.author && noteHash != relatedNoteHash);
+    if (relatedNoteHash != 0) {
+      require(notes[relatedNoteHash].timestamp != 0);
+    }
+    note.relatedNoteHash = relatedNoteHash;
+  }
+
+  onMessage tipNote(bytes32 noteHash) payable {
+    Note storage note = notes[noteHash];
+    require(msg.sender != note.author && msg.amount > 0);
+    note.author.transfer(msg.tokenid, msg.amount);
+    note.tips[msg.tokenid] += msg.amount;
+    timelines[note.author].tips[msg.tokenid] += msg.amount;
+  }
+
+  onMessage tipTimeline(address author) payable {
+    require(msg.amount > 0 && msg.sender != author);
+    author.transfer(msg.tokenid, msg.amount);
+    Timeline storage timeline = timelines[author];
+    timeline.tips[msg.tokenid] += msg.amount;
+  }
+
+  getter getNoteByHash(bytes32 noteHash, tokenId[] calldata tokenIds) returns (address, uint256, string memory, uint256[] memory, bytes32) {
+    Note storage note = notes[noteHash];
+    uint256[] memory tipsCount = new uint256[](tokenIds.length);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      tipsCount[i] = note.tips[tokenIds[i]];
+    }
+    return (note.author, note.timestamp, note.text, tipsCount, note.relatedNoteHash);
+  }
+
+  onMessage requestNoteByTimeline(address author, uint256 index, tokenId[] calldata tokenIds) {
+    (bytes32 hash, uint256 timestamp, string memory text, uint256[] memory tipsCount, bytes32 relatedNoteHash) = getNoteByTimeline(author, tokenIds, index);
+    send(msg.sender, noteByTimelineData(hash, timestamp, text, tipsCount, relatedNoteHash));
+  }
+
+  getter getNoteByTimeline(address author, tokenId[] calldata tokenIds, uint256 index) returns (bytes32, uint256, string memory, uint256[] memory, bytes32) {
+    return getNoteByTimeline(author, tokenIds, index);
+  }
+
+  function getNoteByTimeline(address author, tokenId[] memory tokenIds, uint256 index) private view returns (bytes32, uint256, string memory, uint256[] memory, bytes32) {
+    Timeline storage timeline = timelines[author];
+    Note storage note = notes[timeline.noteHashHistory[index]];
+    uint256[] memory tipsCount = new uint256[](tokenIds.length);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      tipsCount[i] = note.tips[tokenIds[i]];
+    }
+    return (note.hash, note.timestamp, note.text, tipsCount, note.relatedNoteHash);
+  }
+
+  onMessage requestTimelineStats(address author, tokenId[] calldata tokenIds) {
+    (string memory bio, uint256 totalTimelineNotes, uint256[] memory tipsCount) = getTimelineStats(author, tokenIds);
+    send(msg.sender, timelineStats(bio, totalTimelineNotes, tipsCount));
+  }
+
+  getter getTimelineStats(address author, tokenId[] calldata tokenIds) returns (string memory, uint256, uint256[] memory) {
+    return getTimelineStats(author, tokenIds);
+  }
+
+  function getTimelineStats(address author, tokenId[] memory tokenIds) private view returns (string memory, uint256, uint256[] memory) {
+    Timeline storage timeline = timelines[author];
+    uint256[] memory tipsCount = new uint256[](tokenIds.length);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      tipsCount[i] = timeline.tips[tokenIds[i]];
+    }
+    return (timeline.bio, timeline.totalNotes, tipsCount);
+  }
+
+  onMessage changeOwner(address newOwner) {
+    require(msg.sender == owner && newOwner != owner);
+    owner = newOwner;
+  }
+
+  getter getOwner() returns(address) {
+    return owner;
+  }
+
+  getter getTotalNotes() returns(uint256) {
+    return totalNotes;
+  }
+
+  onMessage () payable {
+    owner.transfer(msg.tokenid, msg.amount);
+  }
+}
