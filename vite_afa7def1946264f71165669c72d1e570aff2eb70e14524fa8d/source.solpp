@@ -1,0 +1,113 @@
+pragma soliditypp ^0.4.3;
+
+contract Bridge {
+    tokenId constant VINO_TOKEN_ID = "tti_f9bd6782f966f899d74d7df8";
+    tokenId constant VGATE_TOKEN_ID = "tti_61f59e574f9f7babfe8908e5";
+
+    getter supportedTokens()returns (tokenId, tokenId) {
+        return (VINO_TOKEN_ID, VGATE_TOKEN_ID);
+    }
+
+    uint FEE_PERCENTAGE = 5;
+    tokenId FEE_TOKEN_ID = VINO_TOKEN_ID;
+
+    getter feeInfo() returns (uint, tokenId) {
+        return (FEE_PERCENTAGE, FEE_TOKEN_ID);
+    }
+
+    uint collectedFees;
+    mapping(tokenId => uint) public balances;
+
+    getter collectedFee() returns (uint) {
+        return collectedFees;
+    }
+
+    getter getBalance(tokenId token) returns(uint){
+        return balances[token];
+    }
+
+    address owner;
+    getter getOwner() returns (address) {
+        return owner;
+    }
+
+    constructor() public {
+        owner = msg.sender;
+    }
+
+    onMessage changeFees(uint newFees){
+        require(owner == msg.sender);
+        require(newFees < 100);
+
+        FEE_PERCENTAGE = newFees;
+    }
+
+    onMessage withdrawFees(){
+        require(owner == msg.sender);
+
+        owner.transfer(VINO_TOKEN_ID, collectedFees);
+        collectedFees = 0;
+    }
+
+    onMessage withdrawBlockedBalance(tokenId token){
+        require(owner == msg.sender);
+
+        uint bal = balance(token);
+        uint mapped = balances[token];
+        if(token == VINO_TOKEN_ID){
+            mapped += collectedFees;
+        }
+        uint amount = bal-mapped;
+        require(amount > 0);
+        owner.transfer(token, amount);
+    }
+
+    onMessage withdrawLiquidity(tokenId token){
+        require(owner == msg.sender);
+        require(balances[token] > 0);
+
+        owner.transfer(token, balances[token]);
+        balances[token] = 0;
+    }
+
+    onMessage Fund() payable {
+        require(owner == msg.sender);
+        require(msg.tokenid == VINO_TOKEN_ID || msg.tokenid == VGATE_TOKEN_ID);
+        require(msg.amount > 0);
+        
+        balances[msg.tokenid] += msg.amount;
+    }
+
+    onMessage() payable {
+        // so we can still collect a fee,
+        // 100 raw is nothing.
+        require(msg.amount > 100);
+        
+        uint fee = msg.amount * FEE_PERCENTAGE / 100;
+        uint amount = msg.amount - fee;
+
+        // people want to exchange their bans.
+        tokenId from = msg.tokenid;
+        tokenId to = VINO_TOKEN_ID;
+        
+        if(msg.tokenid == VGATE_TOKEN_ID){
+            // convert the fees in vino too.
+            require(balances[to] >= msg.amount);
+
+            balances[to] -= msg.amount;
+            balances[from] += msg.amount;
+        }else if(msg.tokenid == VINO_TOKEN_ID){
+            to = VGATE_TOKEN_ID;
+            // keep fees in vino, only convert vgate.
+            require(balances[to] >= amount);
+
+            balances[to] -= amount;
+            balances[from] += amount;
+        }else{
+            revert();
+        }
+        collectedFees += fee;
+
+        msg.sender.transfer(to, amount);
+    }
+}
